@@ -42,6 +42,8 @@ import {
   Download,
   Menu
 } from 'lucide-react';
+import { getWxMiniprogramUrl, openWxMiniprogram } from '@/lib/wx-miniprogram-api';
+import { toast } from 'sonner';
 
 export default function Home() {
   const [qrcodeOpen, setQrcodeOpen] = useState(false);
@@ -63,6 +65,35 @@ export default function Home() {
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error('下载二维码失败:', error);
+    }
+  };
+
+  // 点击小橙有门按钮的处理函数
+  const handleXiaochengClick = async () => {
+    // 显示二维码弹窗
+    setQrcodeOpen(true);
+    
+    // 同时调用微信小程序API
+    try {
+      const result = await getWxMiniprogramUrl({
+        path: '/pages/index/index',
+        expire_type: 1,
+        expire_interval: 30,
+        env_version: 'release',
+      });
+
+      if (result.url_link) {
+        // 成功获取到URL，尝试打开微信小程序
+        openWxMiniprogram(result.url_link);
+        toast.success('正在打开微信小程序...');
+      } else if (result.errcode) {
+        console.error('获取微信小程序URL失败:', result.errmsg);
+        toast.error(`获取小程序链接失败: ${result.errmsg || '未知错误'}`);
+      }
+    } catch (error) {
+      console.error('调用微信小程序API失败:', error);
+      // 静默失败，不影响二维码弹窗的显示
+      // 用户仍然可以通过扫描二维码访问小程序
     }
   };
 
@@ -212,7 +243,7 @@ export default function Home() {
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={() => setQrcodeOpen(true)}
+                  onClick={handleXiaochengClick}
                   className="border-psychology-accent/30 text-psychology-accent hover:bg-psychology-accent/10 transition-colors"
                 >
                   <QrCode className="w-4 h-4 mr-2" />

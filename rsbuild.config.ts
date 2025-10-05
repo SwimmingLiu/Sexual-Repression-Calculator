@@ -8,6 +8,16 @@ export default defineConfig({
   plugins: [pluginReact()],
   server: {
     port: 8989,
+    proxy: {
+      // 代理微信小程序API请求，避免CORS问题
+      '/api/wx': {
+        target: 'http://localhost:8090',
+        changeOrigin: true,
+        pathRewrite: {
+          '^/api/wx': '/common/wx',
+        },
+      },
+    },
   },
   html: {
     template: "./index.html",
