@@ -3,11 +3,17 @@
  * 提供评估介绍、快速开始入口和功能说明
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { 
   Brain, 
   Clock, 
@@ -22,10 +28,32 @@ import {
   ArrowRight,
   BookOpen,
   Target,
-  History
+  History,
+  QrCode,
+  Download
 } from 'lucide-react';
 
 export default function Home() {
+  const [qrcodeOpen, setQrcodeOpen] = useState(false);
+
+  // 下载二维码图片
+  const handleDownloadQrcode = async () => {
+    try {
+      const response = await fetch('/qrcode.png');
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = '小橙有门-二维码.png';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('下载二维码失败:', error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-psychology-calm via-white to-psychology-warm">
       {/* 背景装饰 */}
@@ -108,7 +136,7 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-6">
                 <Link to="/assessment?type=quick">
                   <Button size="lg" className="bg-psychology-primary hover:bg-psychology-primary/90 text-white px-8 py-4 text-lg">
                     <Zap className="w-5 h-5 mr-2" />
@@ -123,6 +151,19 @@ export default function Home() {
                     完整版测评
                   </Button>
                 </Link>
+              </div>
+
+              {/* 合作伙伴按钮区域 */}
+              <div className="flex flex-wrap gap-3 justify-center items-center mb-12">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setQrcodeOpen(true)}
+                  className="border-psychology-accent/30 text-psychology-accent hover:bg-psychology-accent/10 transition-colors"
+                >
+                  <QrCode className="w-4 h-4 mr-2" />
+                  小橙有门
+                </Button>
               </div>
 
               {/* 核心指标展示 */}
@@ -428,6 +469,36 @@ export default function Home() {
           </div>
         </footer>
       </div>
+
+      {/* 小橙有门二维码对话框 */}
+      <Dialog open={qrcodeOpen} onOpenChange={setQrcodeOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center text-psychology-accent">小橙有门</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col items-center justify-center p-6">
+            <img 
+              src="/qrcode.png" 
+              alt="小橙有门二维码" 
+              className="w-full max-w-sm rounded-lg shadow-lg cursor-pointer hover:shadow-xl transition-shadow"
+              onContextMenu={(e) => e.preventDefault()}
+            />
+            <p className="mt-4 text-sm text-muted-foreground text-center">
+              扫描二维码关注小橙有门
+            </p>
+            <Button 
+              onClick={handleDownloadQrcode}
+              className="mt-4 w-full bg-psychology-accent hover:bg-psychology-accent/90 text-white"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              下载二维码
+            </Button>
+            <p className="mt-2 text-xs text-muted-foreground text-center">
+              长按图片也可保存
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
