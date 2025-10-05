@@ -14,6 +14,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetTrigger,
+} from '@/components/ui/sheet';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { 
   Brain, 
   Clock, 
@@ -30,11 +39,14 @@ import {
   Target,
   History,
   QrCode,
-  Download
+  Download,
+  Menu
 } from 'lucide-react';
 
 export default function Home() {
   const [qrcodeOpen, setQrcodeOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   // 下载二维码图片
   const handleDownloadQrcode = async () => {
@@ -78,26 +90,68 @@ export default function Home() {
               </div>
             </div>
             
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="sm" asChild>
-                <Link to="/guide">
-                  <BookOpen className="w-4 h-4 mr-2" />
-                  使用指南
-                </Link>
-              </Button>
-              <Button variant="ghost" size="sm" asChild>
-                <Link to="/science">
-                  <FileText className="w-4 h-4 mr-2" />
-                  科学依据
-                </Link>
-              </Button>
-              <Button variant="ghost" size="sm" asChild>
-                <Link to="/history">
-                  <History className="w-4 h-4 mr-2" />
-                  历史记录
-                </Link>
-              </Button>
-            </div>
+            {/* 桌面端导航 */}
+            {!isMobile && (
+              <div className="flex items-center gap-4">
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/guide">
+                    <BookOpen className="w-4 h-4 mr-2" />
+                    使用指南
+                  </Link>
+                </Button>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/science">
+                    <FileText className="w-4 h-4 mr-2" />
+                    科学依据
+                  </Link>
+                </Button>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/history">
+                    <History className="w-4 h-4 mr-2" />
+                    历史记录
+                  </Link>
+                </Button>
+              </div>
+            )}
+            
+            {/* 移动端菜单 */}
+            {isMobile && (
+              <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="sm">
+                    <Menu className="w-5 h-5" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-[280px]">
+                  <SheetHeader>
+                    <SheetTitle>菜单</SheetTitle>
+                    <SheetDescription>
+                      快速访问各个功能页面
+                    </SheetDescription>
+                  </SheetHeader>
+                  <div className="flex flex-col gap-4 mt-6">
+                    <Button variant="ghost" className="justify-start" asChild onClick={() => setMobileMenuOpen(false)}>
+                      <Link to="/guide">
+                        <BookOpen className="w-4 h-4 mr-2" />
+                        使用指南
+                      </Link>
+                    </Button>
+                    <Button variant="ghost" className="justify-start" asChild onClick={() => setMobileMenuOpen(false)}>
+                      <Link to="/science">
+                        <FileText className="w-4 h-4 mr-2" />
+                        科学依据
+                      </Link>
+                    </Button>
+                    <Button variant="ghost" className="justify-start" asChild onClick={() => setMobileMenuOpen(false)}>
+                      <Link to="/history">
+                        <History className="w-4 h-4 mr-2" />
+                        历史记录
+                      </Link>
+                    </Button>
+                  </div>
+                </SheetContent>
+              </Sheet>
+            )}
           </div>
         </nav>
 
