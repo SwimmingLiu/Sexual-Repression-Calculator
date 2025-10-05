@@ -3,12 +3,21 @@
  * 提供详细的学术背景和量表信效度信息
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetTrigger,
+} from '@/components/ui/sheet';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { 
   Brain, 
   BookOpen, 
@@ -22,10 +31,14 @@ import {
   Microscope,
   TrendingUp,
   Shield,
-  CheckCircle
+  CheckCircle,
+  Menu,
+  History
 } from 'lucide-react';
 
 export default function Science() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const isMobile = useIsMobile();
   return (
     <div className="min-h-screen bg-gradient-to-br from-psychology-calm via-background to-psychology-warm">
       {/* 装饰背景 */}
@@ -43,14 +56,60 @@ export default function Science() {
               <Brain className="w-8 h-8 text-psychology-primary" />
               <span className="text-xl font-semibold text-foreground">SRI Calculator</span>
             </Link>
-            <div className="flex items-center space-x-4">
-              <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors">
-                首页
-              </Link>
-              <Link to="/guide" className="text-muted-foreground hover:text-foreground transition-colors">
-                使用指南
-              </Link>
-            </div>
+            
+            {/* 桌面端导航 */}
+            {!isMobile && (
+              <div className="flex items-center space-x-4">
+                <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors">
+                  首页
+                </Link>
+                <Link to="/guide" className="text-muted-foreground hover:text-foreground transition-colors">
+                  使用指南
+                </Link>
+                <Link to="/history" className="text-muted-foreground hover:text-foreground transition-colors">
+                  历史记录
+                </Link>
+              </div>
+            )}
+            
+            {/* 移动端菜单 */}
+            {isMobile && (
+              <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="sm">
+                    <Menu className="w-5 h-5" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-[280px]">
+                  <SheetHeader>
+                    <SheetTitle>菜单</SheetTitle>
+                    <SheetDescription>
+                      快速访问各个功能页面
+                    </SheetDescription>
+                  </SheetHeader>
+                  <div className="flex flex-col gap-4 mt-6">
+                    <Button variant="ghost" className="justify-start" asChild onClick={() => setMobileMenuOpen(false)}>
+                      <Link to="/">
+                        <Home className="w-4 h-4 mr-2" />
+                        首页
+                      </Link>
+                    </Button>
+                    <Button variant="ghost" className="justify-start" asChild onClick={() => setMobileMenuOpen(false)}>
+                      <Link to="/guide">
+                        <BookOpen className="w-4 h-4 mr-2" />
+                        使用指南
+                      </Link>
+                    </Button>
+                    <Button variant="ghost" className="justify-start" asChild onClick={() => setMobileMenuOpen(false)}>
+                      <Link to="/history">
+                        <History className="w-4 h-4 mr-2" />
+                        历史记录
+                      </Link>
+                    </Button>
+                  </div>
+                </SheetContent>
+              </Sheet>
+            )}
           </div>
         </div>
       </nav>
