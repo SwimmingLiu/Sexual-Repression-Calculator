@@ -72,7 +72,10 @@ export default function Home() {
     // 打开二维码弹窗
     setQrcodeOpen(true);
     
-    // 获取并打开微信小程序链接
+    // 关键：必须在用户点击事件的同步代码中立即打开窗口
+    // 否则移动端浏览器会拦截异步操作后的 window.open()
+    const newWindow = window.open('about:blank', '_blank');
+    
     try {
       const urlLink = await fetchWxUrlLink({
         path: '/pages/index/index',
@@ -81,12 +84,19 @@ export default function Home() {
         env_version: 'release',
       });
 
-      if (urlLink) {
-        // 在新窗口中打开微信小程序链接
-        window.open(urlLink, '_blank');
+      if (urlLink && newWindow) {
+        // 更新窗口地址为微信小程序链接
+        newWindow.location.href = urlLink;
+      } else if (!urlLink && newWindow) {
+        // 如果获取链接失败，关闭已打开的窗口
+        newWindow.close();
       }
     } catch (error) {
       console.error('打开微信小程序失败:', error);
+      // 出错时关闭窗口
+      if (newWindow) {
+        newWindow.close();
+      }
     }
   };
 
