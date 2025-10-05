@@ -41,12 +41,16 @@ import {
   History,
   QrCode,
   Download,
-  Menu
+  Menu,
+  ExternalLink,
+  Loader2
 } from 'lucide-react';
 
 export default function Home() {
   const [qrcodeOpen, setQrcodeOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [wxMiniProgramUrl, setWxMiniProgramUrl] = useState<string | null>(null);
+  const [isLoadingUrl, setIsLoadingUrl] = useState(false);
   const isMobile = useIsMobile();
 
   // 下载二维码图片
@@ -67,15 +71,14 @@ export default function Home() {
     }
   };
 
-  // 打开小橙有门小程序
+  // 打开小橙有门小程序弹窗
   const handleOpenMiniProgram = async () => {
     // 打开二维码弹窗
     setQrcodeOpen(true);
+    setIsLoadingUrl(true);
+    setWxMiniProgramUrl(null);
     
-    // 关键：必须在用户点击事件的同步代码中立即打开窗口
-    // 否则移动端浏览器会拦截异步操作后的 window.open()
-    const newWindow = window.open('about:blank', '_blank');
-    
+    // 获取微信小程序链接
     try {
       const urlLink = await fetchWxUrlLink({
         path: '/pages/index/index',
@@ -84,19 +87,20 @@ export default function Home() {
         env_version: 'release',
       });
 
-      if (urlLink && newWindow) {
-        // 更新窗口地址为微信小程序链接
-        newWindow.location.href = urlLink;
-      } else if (!urlLink && newWindow) {
-        // 如果获取链接失败，关闭已打开的窗口
-        newWindow.close();
+      if (urlLink) {
+        setWxMiniProgramUrl(urlLink);
       }
     } catch (error) {
-      console.error('打开微信小程序失败:', error);
-      // 出错时关闭窗口
-      if (newWindow) {
-        newWindow.close();
-      }
+      console.error('获取微信小程序链接失败:', error);
+    } finally {
+      setIsLoadingUrl(false);
+    }
+  };
+
+  // 跳转到微信小程序
+  const handleJumpToMiniProgram = () => {
+    if (wxMiniProgramUrl) {
+      window.open(wxMiniProgramUrl, '_blank');
     }
   };
 
@@ -574,15 +578,44 @@ export default function Home() {
             <p className="mt-4 text-sm text-muted-foreground text-center">
               扫描二维码关注小橙有门
             </p>
-            <Button 
-              onClick={handleDownloadQrcode}
-              className="mt-4 w-full bg-psychology-accent hover:bg-psychology-accent/90 text-white"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              下载二维码
-            </Button>
-            <p className="mt-2 text-xs text-muted-foreground text-center">
-              长按图片也可保存
+            
+            {/* 跳转到小程序按钮 */}
+            <div className="w-full mt-4 space-y-2">
+              <Button 
+                onClick={handleJumpToMiniProgram}
+                disabled={!wxMiniProgramUrl || isLoadingUrl}
+                className="w-full bg-psychology-primary hover:bg-psychology-primary/90 text-white"
+              >
+                {isLoadingUrl ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    获取链接中...
+                  </>
+                ) : wxMiniProgramUrl ? (
+                  <>
+                    <ExternalLink className="w-4 h-4 mr-2" />
+                    打开小程序
+                  </>
+                ) : (
+                  <>
+                    <ExternalLink className="w-4 h-4 mr-2" />
+                    获取链接失败
+                  </>
+                )}
+              </Button>
+              
+              <Button 
+                onClick={handleDownloadQrcode}
+                variant="outline"
+                className="w-full border-psychology-accent text-psychology-accent hover:bg-psychology-accent/10"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                下载二维码
+              </Button>
+            </div>
+            
+            <p className="mt-3 text-xs text-muted-foreground text-center">
+              {isMobile ? '点击按钮或长按二维码保存' : '点击按钮或右键保存二维码'}
             </p>
           </div>
         </DialogContent>
