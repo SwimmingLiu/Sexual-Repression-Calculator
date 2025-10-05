@@ -6,6 +6,9 @@ import { getRequestListener } from "@hono/node-server";
 
 export default defineConfig({
   plugins: [pluginReact()],
+  server: {
+    port: 8989,
+  },
   html: {
     template: "./index.html",
   },
