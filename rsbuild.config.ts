@@ -9,13 +9,10 @@ export default defineConfig({
   server: {
     port: 8989,
     proxy: {
-      // 代理微信小程序API请求，避免CORS问题
-      '/api/wx': {
-        target: 'http://localhost:8090',
+      '/wx-api': {
+        target: 'https://test.doors.orangemust.com',
         changeOrigin: true,
-        pathRewrite: {
-          '^/api/wx': '/common/wx',
-        },
+        pathRewrite: { '^/wx-api': '' },
       },
     },
   },

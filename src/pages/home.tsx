@@ -8,6 +8,7 @@ import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { fetchWxUrlLink } from '@/lib/wx-api-config';
 import {
   Dialog,
   DialogContent,
@@ -42,8 +43,6 @@ import {
   Download,
   Menu
 } from 'lucide-react';
-import { getWxMiniprogramUrl, openWxMiniprogram } from '@/lib/wx-miniprogram-api';
-import { toast } from 'sonner';
 
 export default function Home() {
   const [qrcodeOpen, setQrcodeOpen] = useState(false);
@@ -68,32 +67,26 @@ export default function Home() {
     }
   };
 
-  // 点击小橙有门按钮的处理函数
-  const handleXiaochengClick = async () => {
-    // 显示二维码弹窗
+  // 打开小橙有门小程序
+  const handleOpenMiniProgram = async () => {
+    // 打开二维码弹窗
     setQrcodeOpen(true);
     
-    // 同时调用微信小程序API
+    // 获取并打开微信小程序链接
     try {
-      const result = await getWxMiniprogramUrl({
+      const urlLink = await fetchWxUrlLink({
         path: '/pages/index/index',
         expire_type: 1,
         expire_interval: 30,
         env_version: 'release',
       });
 
-      if (result.url_link) {
-        // 成功获取到URL，尝试打开微信小程序
-        openWxMiniprogram(result.url_link);
-        toast.success('正在打开微信小程序...');
-      } else if (result.errcode) {
-        console.error('获取微信小程序URL失败:', result.errmsg);
-        toast.error(`获取小程序链接失败: ${result.errmsg || '未知错误'}`);
+      if (urlLink) {
+        // 在新窗口中打开微信小程序链接
+        window.open(urlLink, '_blank');
       }
     } catch (error) {
-      console.error('调用微信小程序API失败:', error);
-      // 静默失败，不影响二维码弹窗的显示
-      // 用户仍然可以通过扫描二维码访问小程序
+      console.error('打开微信小程序失败:', error);
     }
   };
 
@@ -243,7 +236,7 @@ export default function Home() {
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={handleXiaochengClick}
+                  onClick={handleOpenMiniProgram}
                   className="border-psychology-accent/30 text-psychology-accent hover:bg-psychology-accent/10 transition-colors"
                 >
                   <QrCode className="w-4 h-4 mr-2" />
