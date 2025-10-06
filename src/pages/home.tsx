@@ -104,19 +104,96 @@ export default function Home() {
 
   // 下载二维码图片
   const handleDownloadQrcode = async () => {
-    try {
-      const response = await fetch('https://sri-orangemust.oss-cn-hangzhou.aliyuncs.com/qrcode.png');
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = '小橙有门-二维码.png';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('下载二维码失败:', error);
+    const imageUrl = 'https://sri-orangemust.oss-cn-hangzhou.aliyuncs.com/qrcode.png';
+    const fileName = '小橙有门-二维码.png';
+
+    // 方法1: 使用 Canvas 转换（兼容性最好，但需要 CORS 支持）
+    const downloadWithCanvas = async (): Promise<boolean> => {
+      try {
+        const img = new Image();
+        img.crossOrigin = 'anonymous'; // 关键：允许跨域
+        
+        return new Promise((resolve) => {
+          img.onload = () => {
+            try {
+              const canvas = document.createElement('canvas');
+              canvas.width = img.width;
+              canvas.height = img.height;
+              
+              const ctx = canvas.getContext('2d');
+              if (!ctx) {
+                resolve(false);
+                return;
+              }
+              
+              ctx.drawImage(img, 0, 0);
+              
+              canvas.toBlob((blob) => {
+                if (!blob) {
+                  resolve(false);
+                  return;
+                }
+                
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = fileName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+                resolve(true);
+              }, 'image/png');
+            } catch (error) {
+              console.error('Canvas 处理失败:', error);
+              resolve(false);
+            }
+          };
+          
+          img.onerror = () => {
+            console.error('图片加载失败');
+            resolve(false);
+          };
+          
+          // 添加时间戳避免缓存问题
+          img.src = `${imageUrl}?t=${Date.now()}`;
+        });
+      } catch (error) {
+        console.error('Canvas 下载失败:', error);
+        return false;
+      }
+    };
+
+    // 方法2: 移动端备用方案 - 打开新窗口查看（用户可以长按保存）
+    const openInNewWindow = () => {
+      try {
+        const link = document.createElement('a');
+        link.href = imageUrl;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // 在移动端提示用户
+        if (isMobile) {
+          setTimeout(() => {
+            alert('请长按图片保存到相册');
+          }, 500);
+        }
+        return true;
+      } catch (error) {
+        console.error('打开新窗口失败:', error);
+        return false;
+      }
+    };
+
+    // 尝试下载
+    const success = await downloadWithCanvas();
+    
+    if (!success) {
+      console.log('Canvas 下载失败，使用备用方案');
+      openInNewWindow();
     }
   };
 
