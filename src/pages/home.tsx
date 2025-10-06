@@ -3,12 +3,13 @@
  * 提供评估介绍、快速开始入口和功能说明
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { fetchWxUrlLink } from '@/lib/wx-api-config';
+import { isWechatMiniProgramAsync } from '@/lib/wx-env-detect';
 import {
   Dialog,
   DialogContent,
@@ -51,7 +52,49 @@ export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [wxMiniProgramUrl, setWxMiniProgramUrl] = useState<string | null>(null);
   const [isLoadingUrl, setIsLoadingUrl] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const isMobile = useIsMobile();
+
+  // 页面加载时自动检测环境并跳转
+  useEffect(() => {
+    const checkAndRedirect = async () => {
+      // 检测是否在微信小程序 webview 中
+      const inMiniProgram = await isWechatMiniProgramAsync();
+      
+      if (inMiniProgram) {
+        // 在小程序中，不需要跳转
+        console.log('当前在微信小程序 webview 中，无需跳转');
+        return;
+      }
+
+      // 不在小程序中，获取链接并自动跳转
+      console.log('当前不在微信小程序中，准备跳转...');
+      setIsRedirecting(true);
+
+      try {
+        const urlLink = await fetchWxUrlLink({
+          path: '/pages/index/index',
+          expire_type: 1,
+          expire_interval: 30,
+          env_version: 'release',
+        });
+
+        if (urlLink) {
+          console.log('获取到微信小程序链接，即将跳转:', urlLink);
+          // 直接跳转到微信小程序
+          window.location.href = urlLink;
+        } else {
+          console.error('获取微信小程序链接失败');
+          setIsRedirecting(false);
+        }
+      } catch (error) {
+        console.error('自动跳转失败:', error);
+        setIsRedirecting(false);
+      }
+    };
+
+    checkAndRedirect();
+  }, []);
 
   // 下载二维码图片
   const handleDownloadQrcode = async () => {
@@ -103,6 +146,31 @@ export default function Home() {
       window.open(wxMiniProgramUrl, '_blank');
     }
   };
+
+  // 如果正在跳转，显示跳转提示页面
+  if (isRedirecting) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-psychology-calm via-white to-psychology-warm flex items-center justify-center">
+        <div className="text-center p-8 max-w-md mx-auto">
+          <div className="w-20 h-20 bg-psychology-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Loader2 className="w-10 h-10 text-psychology-primary animate-spin" />
+          </div>
+          <h2 className="text-2xl font-bold text-psychology-primary mb-3">正在跳转到微信小程序...</h2>
+          <p className="text-muted-foreground mb-4">请稍候，即将为您打开小橙有门小程序</p>
+          <p className="text-sm text-muted-foreground mb-6">
+            {isMobile ? '如未自动跳转，请确保已安装微信' : '如未自动跳转，请稍后重试'}
+          </p>
+          <Button
+            variant="outline"
+            onClick={() => setIsRedirecting(false)}
+            className="mt-4 border-psychology-primary text-psychology-primary hover:bg-psychology-primary hover:text-white"
+          >
+            取消跳转，继续浏览网页
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-psychology-calm via-white to-psychology-warm">
