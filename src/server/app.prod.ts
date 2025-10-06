@@ -4,7 +4,7 @@ import { setupRoutes } from "./routes";
 
 const app = new Hono();
 
-const presevePaths = ["/static", "/favicon.svg", "/api"];
+const presevePaths = ["/static", "/api"];
 
 app.use(
   "*",

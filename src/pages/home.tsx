@@ -105,7 +105,7 @@ export default function Home() {
   // 下载二维码图片
   const handleDownloadQrcode = async () => {
     try {
-      const response = await fetch('/qrcode.png');
+      const response = await fetch('https://sri-orangemust.oss-cn-hangzhou.aliyuncs.com/qrcode.png');
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -644,7 +644,7 @@ export default function Home() {
           </DialogHeader>
           <div className="flex flex-col items-center justify-center p-6">
             <img 
-              src="/qrcode.png" 
+              src="https://sri-orangemust.oss-cn-hangzhou.aliyuncs.com/qrcode.png" 
               alt="小橙有门二维码" 
               className="w-full max-w-sm rounded-lg shadow-lg cursor-pointer hover:shadow-xl transition-shadow"
               onContextMenu={(e) => e.preventDefault()}
