@@ -55,9 +55,15 @@ export default function Home() {
   const [isRedirecting, setIsRedirecting] = useState(false);
   const isMobile = useIsMobile();
 
-  // 页面加载时自动检测环境并跳转
+  // 页面加载时自动检测环境并跳转（仅移动端）
   useEffect(() => {
     const checkAndRedirect = async () => {
+      // 检测是否是移动端
+      if (!isMobile) {
+        console.log('当前是桌面端，无需跳转');
+        return;
+      }
+
       // 检测是否在微信小程序 webview 中
       const inMiniProgram = await isWechatMiniProgramAsync();
       
@@ -67,8 +73,8 @@ export default function Home() {
         return;
       }
 
-      // 不在小程序中，获取链接并自动跳转
-      console.log('当前不在微信小程序中，准备跳转...');
+      // 移动端且不在小程序中，获取链接并自动跳转
+      console.log('当前是移动端且不在微信小程序中，准备跳转...');
       setIsRedirecting(true);
 
       try {
@@ -94,7 +100,7 @@ export default function Home() {
     };
 
     checkAndRedirect();
-  }, []);
+  }, [isMobile]);
 
   // 下载二维码图片
   const handleDownloadQrcode = async () => {
